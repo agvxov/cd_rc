@@ -12,9 +12,8 @@ Overrides ***cd*** with ***pushd*** and automatically calls ***dirs*** whenever 
 + dirs
 + popd
 
-## Installation
+## Ways to install
 - move wherever and ***source***
-or
 - copy the file contents to your *bashrc*
 
 ## Further reading
