@@ -1,0 +1,47 @@
+#!/bin/bash
+alias cd="PushdAlias"
+alias cdh="cd ~"
+alias cdu="cdUp"
+alias pop="popd"
+alias popd="PopdAlias"
+alias dirs="DirsAlias"
+
+function mkdircd() {
+	mkdir -p "$@" && eval cd "\"\$$#\"";
+}
+function cdUp() {
+	if [[ $# -eq 0 ]]; then
+		cd ..
+		return
+	fi
+	for ((i=0 ; i <= $# ; i++)); do
+		cd ..
+	done
+}
+function PushdAlias() {
+	if [ -d "$1" ]; then
+		\pushd "$1" > /dev/null
+		dirs
+	else
+		SPWD=$PWD
+		\pushd "$@" > /dev/null
+		[ $SPWD != $PWD ] && dirs
+	fi
+}
+function PopdAlias() {
+	\popd "$@" > /dev/null && dirs
+}
+function DirsAlias() {
+	if [ $# == 0 ]; then
+		\dirs -p | awk -v ln=0 '{ printf("\033[1;36m%2d: \033[m%s\n", ln++, $0); }'
+	else
+		\dirs "$@"
+	fi
+}
+
+
+shopt -s cdspell		# If set, minor errors in the spelling of a directory component in a cd 
+			    		# command will be corrected. The errors checked for are transposed characters, 
+			    		# a missing character, and a character too many.
+
+
