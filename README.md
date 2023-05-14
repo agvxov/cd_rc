@@ -4,6 +4,8 @@ Bundle of Bash functions and aliases to enhance directory changing.
 ## What does it do?
 Overrides ***cd*** with ***pushd*** and automatically calls ***dirs*** whenever appropriate.
 
+![](demo.png)
+
 ## List of changed/added commands
 + mkdircd (mkdir & cd)
 + cdu (cd up N times)
