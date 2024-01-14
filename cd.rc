@@ -1,10 +1,19 @@
 #!/bin/bash
+#
+# Plugin: cd_rc
+# Description: Replaces vanilla cd with the Bash Directory Stack with custom formatting and defines common directory changing settings.
+# Author: Anon
+# Date: 2024
+# Version: 1.0
+
 alias cd="PushdAlias"
+alias popd="PopdAlias"
+alias dirs="DirsAlias"
 alias cdh="cd ~"
 alias cdu="cdUp"
 alias pop="popd"
-alias popd="PopdAlias"
-alias dirs="DirsAlias"
+
+alias cd..="cd .."	# people like this for some reason
 
 function mkdircd() {
 	mkdir -p "$@" && eval cd "\"\$$#\"";
