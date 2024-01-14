@@ -1,4 +1,4 @@
-# cd_rc
+# cd\_rc
 Bundle of Bash functions and aliases to enhance directory changing.
 
 ## What does it do?
