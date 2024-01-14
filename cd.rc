@@ -5,6 +5,9 @@
 # Author: Anon
 # Date: 2024
 # Version: 1.0
+# Source:
+#   mirror 1: http://bis64wqhh3louusbd45iyj76kmn4rzw5ysawyan5bkxwyzihj67c5lid.onion/anon/cd_rc
+#   mirror 2: https://github.com/agvxov/cd_rc.git
 
 alias cd="PushdAlias"
 alias popd="PopdAlias"
