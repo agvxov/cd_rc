@@ -1,23 +1,19 @@
 # Plugin: cd_rc (PowerShell port)
-# Description: Replaces vanilla cd with a directory-stack-aware cd, custom formatting of the stack, and common directory-change helpers.
+# Description: Replaces vanilla cd with a directory-stack-aware cd,
+#              custom formatting of the stack, and common directory-change helpers.
 # Author: Anon
 # Date: 2026
-# Version: 1.0
-
-# XXX:
-# there is a builtin Push-Location and Pop-Location
-
-# -- state
-$global:__DirectoryStack = @($PWD.Path)
+# Version: 2.0
 
 # -- core functions
+
 function global:mkdircd {
     if ($args.Count -eq 0) { return }
 
     foreach ($d in $args) {
         New-Item -ItemType Directory -Force -Path $d | Out-Null
     }
-    __mypushd $args[-1]
+    cd $args[-1]
 }
 
 function global:cdUp {
@@ -29,65 +25,47 @@ function global:cdUp {
         if ([string]::IsNullOrEmpty($parent) -or $parent -eq $target) { break }
         $target = $parent
     }
-    __mypushd $target
-}
-
-function global:__mypushd ([string]$Path) {
-    try {
-        Set-Location -LiteralPath $Path -ErrorAction Stop
-        $global:__DirectoryStack += $PWD.Path
-        __mydirs
-    } catch {
-        Write-Error "cd: $_"
-        return $false
-    }
-}
-
-function global:__mypopd {
-    if ($global:__DirectoryStack.Count -lt 2) {
-        Write-Error "popd: directory stack is empty"
-        return $false
-    }
-
-    $target = $global:__DirectoryStack[-2]
-    try {
-        Set-Location -LiteralPath $target -ErrorAction Stop
-        $global:__DirectoryStack = $global:__DirectoryStack[0..($global:__DirectoryStack.Count - 2)]
-        __mydirs
-    } catch {
-        Write-Error "popd: $_"
-        return $false
-    }
+    cd $target
 }
 
 function global:__mydirs {
+    $entries = @($PWD.Path) + @((Get-Location -Stack).ToArray() | ForEach-Object { $_.Path })
+
     $ln = 0
-    for ($i = $global:__DirectoryStack.Count - 1; $i -ge 0; $i--) {
-        $d = $global:__DirectoryStack[$i]
-        if (Test-Path -LiteralPath $d -PathType Container) {
-            $color = [System.ConsoleColor]::Cyan
+    foreach ($d in $entries) {
+        $bad_prefix = 'Microsoft.PowerShell.Core\FileSystem::'
+        $display = if ($d.StartsWith($bad_prefix)) { $d.Substring($bad_prefix.Length) } else { $d }
+
+        $color = if (Test-Path -LiteralPath $d -PathType Container) {
+            [System.ConsoleColor]::Cyan
         } else {
-            $color = [System.ConsoleColor]::Red
+            [System.ConsoleColor]::Red
         }
 
-        $label = "{0,2}: " -f $ln
-        Write-Host -NoNewLine $label -ForegroundColor $color
-        Write-Host $d -ForegroundColor ([System.ConsoleColor]::White)
+        Write-Host -NoNewLine ("{0,2}: " -f $ln) -ForegroundColor $color
+        Write-Host $display -ForegroundColor ([System.ConsoleColor]::White)
         $ln++
     }
 }
 
 # -- wrappers
 
-# NOTE: cd.. can't be a function name in PowerShell
+Remove-Item Alias:cd    -Force -ErrorAction SilentlyContinue
+Remove-Item Alias:popd  -Force -ErrorAction SilentlyContinue
+Remove-Item Alias:pushd -Force -ErrorAction SilentlyContinue
 
-Remove-Item Alias:cd    -Force
-Remove-Item Alias:popd  -Force
-Remove-Item Alias:pushd -Force
+function global:cd {
+    Push-Location $args[0]
+    if ($?) { __mydirs }
+}
 
-function global:cdh  { __mypushd $HOME }
+function global:popd { 
+    Pop-Location
+    if ($?) { __mydirs }
+}
+
+function global:pop  { popd }
+function global:cdh  { cd $HOME }
 function global:cdu  { cdUp @args }
-function global:cd   { __mypushd $args }
-function global:popd { __mypopd }
-function global:pop  { __mypopd }
 function global:dirs { __mydirs }
+function global:pushd { cd @args }  # keep pushd working as an alias
